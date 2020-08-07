@@ -1,0 +1,37 @@
+# Copyright (c) 2019 AccelByte Inc. All Rights Reserved.
+# This is licensed software from AccelByte Inc, for limitations
+# and restrictions contact your company contract manager.
+
+# Deny access for all files
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+	Order Deny,Allow
+	Deny from all
+</IfModule>
+
+# Apache 2.4
+<IfModule mod_authz_core.c>
+	Require all denied
+</IfModule>
+
+# Allow access to version file
+<FilesMatch "^version\.json$">
+	<IfModule !mod_authz_core.c>
+		Allow from all
+	</IfModule>
+
+	<IfModule mod_authz_core.c>
+		Require all granted
+	</IfModule>
+</FilesMatch>
+
+# Allow access to js files
+<FilesMatch "(?<!\.0)\.(js|css|map)$">
+	<IfModule !mod_authz_core.c>
+		Allow from all
+	</IfModule>
+
+	<IfModule mod_authz_core.c>
+		Require all granted
+	</IfModule>
+</FilesMatch>

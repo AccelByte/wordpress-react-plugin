@@ -1,0 +1,15 @@
+# Copyright (c) 2019 AccelByte Inc. All Rights Reserved.
+# This is licensed software from AccelByte Inc, for limitations
+# and restrictions contact your company contract manager.
+
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+/widget/node_modules/
+
+# production
+/widget/build
+
+# misc
+/widget/yarn.lock
+/.idea
