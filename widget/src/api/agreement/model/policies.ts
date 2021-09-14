@@ -7,6 +7,11 @@
 import * as ioTs from "io-ts";
 import {Enum} from "../../types";
 
+export const LegalPolicyType = {
+  LEGAL_DOCUMENT: "Legal Document",
+  MARKETING_PREFERENCE: "Marketing Preference",
+};
+
 export const PolicyTypeEnum = Enum("LEGAL_DOCUMENT_TYPE", "MARKETING_PREFERENCE_TYPE");
 
 export const TagsEnum = Enum("FOOTER");
@@ -36,7 +41,6 @@ export const PolicyVersion = ioTs.intersection([
     id: ioTs.string,
     displayVersion: ioTs.string,
     isCommitted: ioTs.boolean,
-    isCrucial: ioTs.boolean,
     isInEffect: ioTs.boolean,
   }),
   ioTs.partial({

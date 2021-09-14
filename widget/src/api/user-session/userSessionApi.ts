@@ -7,13 +7,15 @@
 import { Container } from "unstated";
 import { isAxiosError } from "../errorDeducer";
 import networkManager from "../network";
-import {ElligibleUser, InelligibleUser, User} from "../user/models/user";
-import {fetchCurrentUser, loginWithAuthorizationCode, logout, refreshSession} from "../user/user";
+import { ElligibleUser, User } from "../user/models/user";
+import { fetchCurrentUser, loginWithAuthorizationCode, logout, refreshSession } from "../user/user";
 import { UserSessionError } from "./userSessionApiConstants";
-import {combineURLPaths} from "../../utils/urlHelper";
-import {clientId, playerPortalUrl} from "../../utils/env";
-import {DEVICE_ID_KEY, generateDeviceId, getDeviceType} from "../../utils/device";
-import {sleepAsync} from "../../utils/executionHelper";
+import { combineURLPaths } from "../../utils/urlHelper";
+import { clientId, namespace, playerPortalUrl } from "../../utils/env";
+import { DEVICE_ID_KEY, generateDeviceId, getDeviceType } from "../../utils/device";
+import { sleepAsync } from "../../utils/executionHelper";
+import { AuthorizationCodeExchangeState } from "../../components/Auth/AuthorizationCodeExchangeStateHelper";
+import LegalLogic from "../agreement/legalLogic";
 const platform = require("platform");
 
 interface UserSessionManagerConfig {
@@ -23,6 +25,7 @@ interface UserSessionManagerConfig {
 }
 
 interface State {
+  legalLogic?: LegalLogic;
   user?: User | null;
   error?: UserSessionError;
   isFetching: boolean;
@@ -32,14 +35,12 @@ interface State {
 const accountPage = "account/overview";
 const privacyRecordPage = "account/privacy-records";
 
-const storageIdKeyPrefix = "pp:session";
-
 const REFRESH_EXPIRY = 1000;
-const REFRESH_EXPIRY_UPDATE_RATE = REFRESH_EXPIRY / 2;
+const REFRESH_EXPIRY_UPDATE_RATE = 500;
 const REFRESH_EXPIRY_CHECK_RATE = 1000;
 
 const RefreshSessionLock = {
-  key: `${storageIdKeyPrefix}.lock`,
+  key: "RefreshSession.lock",
   isLocked: (): boolean => {
     const lockStatus = localStorage.getItem(RefreshSessionLock.key);
     if (!lockStatus) {
@@ -59,38 +60,15 @@ const RefreshSessionLock = {
   },
 };
 
-const TokenStore = {
-  refreshIdkey: `${storageIdKeyPrefix}.refreshId`,
-  sessionIdkey: `${storageIdKeyPrefix}.sessionId`,
-  expiresInKey: `${storageIdKeyPrefix}.expiresIn`,
-  set: ({ refresh_id, session_id, expires_in }: { refresh_id: string; session_id: string; expires_in: number }) => {
-    localStorage.setItem(TokenStore.refreshIdkey, refresh_id);
-    localStorage.setItem(TokenStore.sessionIdkey, session_id);
-    localStorage.setItem(TokenStore.expiresInKey, JSON.stringify(expires_in));
-  },
-  get: () => {
-    return {
-      refreshId: localStorage.getItem(TokenStore.refreshIdkey) || null,
-      sessionId: localStorage.getItem(TokenStore.sessionIdkey) || null,
-      expiresIn: JSON.parse(localStorage.getItem(TokenStore.expiresInKey) || '0'),
-    };
-  },
-  remove: () => {
-    localStorage.removeItem(TokenStore.refreshIdkey);
-    localStorage.removeItem(TokenStore.sessionIdkey);
-    localStorage.removeItem(TokenStore.expiresInKey);
-  },
-};
-
 export default class UserSessionApi extends Container<State> {
   config: UserSessionManagerConfig;
-  tokenStore: typeof TokenStore;
   refreshSessionLock: typeof RefreshSessionLock;
 
   constructor(configInput: UserSessionManagerConfig) {
     super();
 
     this.state = {
+      legalLogic: undefined,
       isFetching: false,
       isLoggingOut: false,
       user: undefined,
@@ -98,7 +76,6 @@ export default class UserSessionApi extends Container<State> {
     };
 
     this.config = configInput;
-    this.tokenStore = TokenStore;
     this.refreshSessionLock = RefreshSessionLock;
   }
 
@@ -121,33 +98,41 @@ export default class UserSessionApi extends Container<State> {
   }
 
   currentUserIsBlockedByLegal(): boolean {
-    const { user } = this.state;
-    if (!user) return false;
-    return InelligibleUser.is(user) && !user.eligible;
+    const { legalLogic } = this.state;
+    if (!!legalLogic) {
+      const { eligibilities } = legalLogic.state;
+      return !!eligibilities && eligibilities.length > 0;
+    }
+    return false;
   }
 
   currentUserNeedAdministration(): boolean {
     const { user } = this.state;
     if (!user) return false;
-    return this.currentUserIsUnderDeletionStatus() ||
+    return (
+      this.currentUserIsUnderDeletionStatus() ||
       this.currentUserIsBlockedByLegal() ||
       this.currentUserIsHeadlessAccount() ||
       this.currentUserEmailNeedsVerification()
+    );
   }
 
-  async fetchCurrentUser() {
+  async fetchCurrentUser(statePayload?: AuthorizationCodeExchangeState) {
     try {
+      const legalLogic = new LegalLogic({ namespace });
       this.setState({ isFetching: true });
       const network = networkManager.withSessionIdFromCookie();
-      const user = await fetchCurrentUser(network).then((result) => {
+      const user = await fetchCurrentUser(network).then(async (result) => {
         if (result.error) throw result.error;
+
+        await legalLogic.init();
         return result.response.data;
       });
       await this.setState({ user, error: undefined });
 
-      if (this.currentUserEmailNeedsVerification()) return this.goToVerifyEmail();
-      if (this.currentUserIsHeadlessAccount()) return this.goToUpgradeAccount();
-      if (this.currentUserIsBlockedByLegal()) return this.goToAcceptLegal();
+      if (this.currentUserEmailNeedsVerification()) return this.goToVerifyEmail(statePayload);
+      if (this.currentUserIsHeadlessAccount()) return this.goToUpgradeAccount(statePayload);
+      if (this.currentUserIsBlockedByLegal()) return this.goToAcceptLegal(statePayload);
       if (this.currentUserIsUnderDeletionStatus()) return this.goToDeletion();
     } catch (error) {
       if (isAxiosError(error)) {
@@ -171,7 +156,15 @@ export default class UserSessionApi extends Container<State> {
     }
   }
 
-  async loginWithAuthorizationCode({ code, codeVerifier }: { code: string; codeVerifier: string }) {
+  async loginWithAuthorizationCode({
+    code,
+    codeVerifier,
+    statePayload,
+  }: {
+    code: string;
+    codeVerifier: string;
+    statePayload?: AuthorizationCodeExchangeState;
+  }) {
     const network = networkManager.withSessionIdFromCookie({
       headers: {
         "Device-Id": localStorage.getItem(DEVICE_ID_KEY) || generateDeviceId(),
@@ -188,39 +181,52 @@ export default class UserSessionApi extends Container<State> {
     });
     if (result.error) throw result.error;
 
-    const { session_id, expires_in,  refresh_id } = result.response.data;
-    this.tokenStore.set({ session_id, expires_in, refresh_id });
-
-    await this.fetchCurrentUser();
+    await this.fetchCurrentUser(statePayload);
   }
 
   async logout(doApiCall = true) {
     if (this.state.isLoggingOut) return;
     await this.setState({ isLoggingOut: true });
     try {
-      this.tokenStore.remove();
       if (doApiCall) {
-        const network = networkManager.withSessionIdFromCookie();
+        const network = networkManager.withSessionIdFromCookie({
+          headers: {
+            "Content-Type": "text/plain",
+          },
+        });
         await logout(network);
+        this.setState({
+          legalLogic: new LegalLogic({ namespace }),
+          error: undefined,
+        });
       }
     } finally {
       this.setState({ user: null, isLoggingOut: false, error: undefined });
     }
   }
 
-  goToVerifyEmail = (): void => {
-    const verifyEmailURL = combineURLPaths(playerPortalUrl, accountPage);
-    window.location.replace(verifyEmailURL);
+  goToVerifyEmail = (statePayload?: AuthorizationCodeExchangeState): void => {
+    const verifyEmailURL = new URL(combineURLPaths(playerPortalUrl, accountPage));
+    if (!!statePayload && !!statePayload.path) {
+      verifyEmailURL.searchParams.append("path", statePayload.path);
+    }
+    window.location.replace(verifyEmailURL.toString());
   };
 
-  goToUpgradeAccount = (): void => {
-    const verifyEmailURL = combineURLPaths(playerPortalUrl, accountPage);
-    window.location.replace(verifyEmailURL);
+  goToUpgradeAccount = (statePayload?: AuthorizationCodeExchangeState): void => {
+    const upgradeAccountUrl = new URL(combineURLPaths(playerPortalUrl, accountPage));
+    if (!!statePayload && !!statePayload.path) {
+      upgradeAccountUrl.searchParams.append("path", statePayload.path);
+    }
+    window.location.replace(upgradeAccountUrl.toString());
   };
 
-  goToAcceptLegal = (): void => {
-    const acceptLegalURL = combineURLPaths(playerPortalUrl, privacyRecordPage);
-    window.location.replace(acceptLegalURL);
+  goToAcceptLegal = (statePayload?: AuthorizationCodeExchangeState): void => {
+    const acceptLegalURL = new URL(combineURLPaths(playerPortalUrl, privacyRecordPage));
+    if (!!statePayload && !!statePayload.path) {
+      acceptLegalURL.searchParams.append("path", statePayload.path);
+    }
+    window.location.replace(acceptLegalURL.toString());
   };
 
   goToDeletion = (): void => {
@@ -230,56 +236,55 @@ export default class UserSessionApi extends Container<State> {
 
   refreshSessionWithLockOrLogout = async () => {
     if (this.refreshSessionLock.isLocked()) {
-      while (this.refreshSessionLock.isLocked()) {
-        await sleepAsync(REFRESH_EXPIRY_CHECK_RATE);
-      }
+      return Promise.resolve().then(async () => {
+        // This block is executed when other tab / request is refreshing
+        while (this.refreshSessionLock.isLocked()) {
+          await sleepAsync(REFRESH_EXPIRY_CHECK_RATE);
+        }
 
-      // Resolve the promise if the token already refreshed by previous request
-      if (!!this.tokenStore.get().refreshId) {
-        return Promise.resolve();
-      }
-
-      // Reject the promise if the refresh token action by previous request is failed
-      await this.logout(false);
-      return Promise.reject();
+        return {};
+      });
     }
 
     this.refreshSessionLock.lock(REFRESH_EXPIRY);
-    let isRefreshingToken = true;
+    let isLocallyRefreshingToken = true;
     // Create interval for updating refresh process expiration
     (async () => {
-      while (isRefreshingToken && this.refreshSessionLock.isLocked()) {
+      while (isLocallyRefreshingToken) {
         this.refreshSessionLock.lock(REFRESH_EXPIRY);
         await sleepAsync(REFRESH_EXPIRY_UPDATE_RATE);
       }
     })();
 
-    const { refreshId } = this.tokenStore.get();
-    if (!refreshId) {
-      // Reject the promise if there's no refreshId in the storage
-      await this.logout(false);
-      this.refreshSessionLock.unlock();
-      return Promise.reject();
-    }
+    return Promise.resolve()
+      .then(async () => {
+        const network = networkManager.withSessionIdFromCookie({
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${new Buffer(`${clientId}:`).toString("base64")}`,
+          },
+        });
 
-    const network = networkManager.withSessionIdFromCookie({
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-    const result = await refreshSession(network, { clientId, refreshId });
-    // Reject the promise if refresh session is failing
-    if (result.error) {
-      await this.logout();
-      this.refreshSessionLock.unlock();
-      return Promise.reject();
-    }
+        const result = await refreshSession(network, { clientId, refreshToken: null });
 
-    const { refresh_id, session_id, expires_in } = result.response.data;
-    this.tokenStore.set({ refresh_id, session_id, expires_in });
-    isRefreshingToken = false;
-    this.refreshSessionLock.unlock();
-    return Promise.resolve();
-  }
+        // Reject the promise if refresh session is failing
+        if (result.error) {
+          return false;
+        }
 
+        const { refresh_token, access_token, expires_in, is_comply, refresh_expires_in } = result.response.data;
+        return {
+          sessionId: access_token,
+          refreshId: refresh_token,
+          expiresIn: expires_in,
+          refreshExpiresAt: refresh_expires_in,
+          isComply: is_comply,
+        };
+      })
+      .finally(async () => {
+        await this.logout(false);
+        isLocallyRefreshingToken = false;
+        RefreshSessionLock.unlock();
+      });
+  };
 }
