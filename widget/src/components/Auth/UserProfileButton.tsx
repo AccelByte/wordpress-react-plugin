@@ -80,7 +80,7 @@ class UserProfileButton extends React.Component<Props, State> {
       >
         <Avatar
           isLoading={isFetchingProfile}
-          imageUrl={profile!.avatarUrl}
+          imageUrl={profile ? profile.avatarUrl : ""}
           className={classNames(
             "ab-wpr-avatar",
             {"large": screenWidth >= breakPoint.medium.max},

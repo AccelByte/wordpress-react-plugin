@@ -8,15 +8,13 @@
 
 export const isDevMode = process.env.NODE_ENV === "development";
 
-export const redirectURI =
-  process.env.CLIENT_REDIRECT_URI || (isDevMode && "https://demo.accelbyte.io") || "";
+export const redirectURI = process.env.CLIENT_REDIRECT_URI || (isDevMode && "https://demo.accelbyte.io") || "";
 
 export const clientId = process.env.APP_SECURITY_CLIENT_ID || "";
 
 export const namespace = process.env.JUSTICE_PUBLISHER_NAMESPACE || "";
 
-export const apiUrl =
-  process.env.JUSTICE_APIGATEWAY_BASE_URL || (isDevMode && "https://api.accelbyte.io") || "";
+export const apiUrl = process.env.JUSTICE_BASE_URL || (isDevMode && "https://demo.accelbyte.io") || "";
 
 export const playerPortalUrl =
   process.env.JUSTICE_PLAYERPORTAL_URL || (isDevMode && "https://demo.accelbyte.io/player") || "";

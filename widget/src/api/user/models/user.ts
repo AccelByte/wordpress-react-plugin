@@ -8,8 +8,9 @@ import * as ioTs from "io-ts";
 
 export const LoginSessionData = ioTs.type({
   expires_in: ioTs.number,
-  session_id: ioTs.string,
-  refresh_id: ioTs.string,
+  access_token: ioTs.string,
+  refresh_token: ioTs.string,
+  is_comply: ioTs.boolean,
   refresh_expires_in: ioTs.number,
 });
 export type LoginSessionData = ioTs.TypeOf<typeof LoginSessionData>;
@@ -27,14 +28,6 @@ export const UserBan = ioTs.type({
   endDate: ioTs.string,
 });
 
-export const InelligibleUser = ioTs.type({
-  eligible: ioTs.literal(false),
-  emailAddress: ioTs.string,
-  deletionStatus: ioTs.boolean,
-  country: ioTs.string,
-});
-export type InelligibleUser = ioTs.TypeOf<typeof InelligibleUser>;
-
 export const ElligibleUser = ioTs.intersection([
   ioTs.type({
     userId: ioTs.string,
@@ -48,14 +41,11 @@ export const ElligibleUser = ioTs.intersection([
   ioTs.partial({
     newEmailAddress: ioTs.string,
     oldEmailAddress: ioTs.string,
-    deletionStatus: ioTs.boolean
+    deletionStatus: ioTs.boolean,
   }),
 ]);
 
-export const User = ioTs.union([
-  ElligibleUser,
-  InelligibleUser
-]);
+export const User = ElligibleUser;
 
 export type User = ioTs.TypeOf<typeof User>;
 

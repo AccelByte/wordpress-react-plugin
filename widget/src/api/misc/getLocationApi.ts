@@ -11,6 +11,6 @@ import { guardNetworkCall } from "../networkCallTypeguard";
 import {geoLocation,getLocationDecodeError} from "./models/geoLocation";
 
 export async function fetchGeoLocationInformation(network: Network) {
-  const url = combineURLPaths(apiUrl, `/location/country`);
+  const url = combineURLPaths(apiUrl, `/iam/v3/location/country`);
   return guardNetworkCall(() => network.get(url), geoLocation, getLocationDecodeError, (error) => error);
 }
