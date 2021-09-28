@@ -12,6 +12,7 @@ import {AppState} from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
 import {loginAPI} from "../../app-state/loginAPIInstance";
 import {AuthorizationCodeExchangeStateHelper} from "./AuthorizationCodeExchangeStateHelper";
+import { loginUriPathName, registerUriPathName } from 'src/utils/env';
 
 interface Props {
   appState: AppState;
@@ -67,7 +68,19 @@ class LoginButton extends React.Component<Props, State> {
     this.setState({isRedirectingToAuthorizeUrl: true});
 
     window.location.href = loginAPI.createLoginURL(AuthorizationCodeExchangeStateHelper.toJSONString({
-      path: appHistory.location.pathname,
+      path: loginUriPathName ? "/" : appHistory.location.pathname,
+    }));
+  };
+
+  goToRegister = () => {
+    const {state: {userSession, initialized}} = this.props.appState;
+    if (!initialized || !!userSession.state.user) return;
+
+    if (this.state.isRedirectingToAuthorizeUrl) return;
+    this.setState({isRedirectingToAuthorizeUrl: true});
+
+    window.location.href = loginAPI.createRegisterURL(AuthorizationCodeExchangeStateHelper.toJSONString({
+      path: "/",
     }));
   };
 
@@ -79,6 +92,14 @@ class LoginButton extends React.Component<Props, State> {
     const isLoggedIn = !!userSession.state.user;
     const isFetchingUser = userSession.state.isFetching;
     const isLoggingOut = userSession.state.isLoggingOut;
+
+    if( registerUriPathName && window.location.pathname === registerUriPathName ) {
+      this.goToRegister();
+    }
+
+    if( loginUriPathName && window.location.pathname === loginUriPathName ) {
+      this.goToLogin();
+    }
 
     if (isMobile && isLoggedIn) return null;
 

@@ -24,3 +24,7 @@ export const legalWebsiteURL =
 
 export const createOrderUrl =
   process.env.JUSTICE_CREATE_ORDER_URL || (isDevMode && "https://demo.accelbyte.io/player/create-order") || "";
+
+export const registerUriPathName = process.env.CLIENT_REGISTER_URI_PATH_NAME || "";
+
+export const loginUriPathName = process.env.CLIENT_LOGIN_URI_PATH_NAME || "";

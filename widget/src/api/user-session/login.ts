@@ -110,4 +110,34 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
 
     return url.toString();
   }
-}
+
+  createRegisterURL(payload?: string): string {
+    const { verifier, challenge } = CodeChallengeManager.generateCodeChallenge("sha256");
+    const csrf = CodeChallengeManager.generateCodeCsrf();
+    const storedState = {
+      codeVerifier: verifier,
+      csrf,
+    };
+    const sentState = {
+      csrf,
+      payload: payload || null,
+    };
+  
+    const searchParams = new URLSearchParams();
+    searchParams.append("response_type", "code");
+    searchParams.append("client_id", clientId);
+    searchParams.append("redirect_uri", redirectURI);
+    searchParams.append("state", CodeChallengeHelper.stringifySentState(sentState));
+    searchParams.append("code_challenge", challenge);
+    searchParams.append("code_challenge_method", "S256");
+    searchParams.append("target_auth_page", "register");
+  
+    this.saveCodeChallengeStoredState(CodeChallengeHelper.stringifyStoredState(storedState));
+    const url = new URL(combineURLPaths(apiUrl, `/iam/v3/oauth/authorize?${searchParams.toString()}`));
+  
+    
+  
+    return url.toString();
+  }
+}  
+
