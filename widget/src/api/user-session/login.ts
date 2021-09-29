@@ -11,6 +11,11 @@ import { combineURLPaths } from "src/utils/urlHelper";
 import * as uuid from "uuid";
 import { CodeChallengeHelper } from "./models/codeChallenge";
 
+export const targetAuthPage = {
+  login: "login",
+  register: "register"
+}
+
 function base64URLEncode(code: Buffer) {
   return code
     .toString("base64")
@@ -86,7 +91,7 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     };
   }
 
-  createLoginWebsiteUrl( args: {payload: {}, targetAuthPage: string}): string {
+  createLoginWebsiteUrl( args: {payload: {path?: string}, targetAuthPage: string}): URL {
     const { payload, targetAuthPage } = args;
     const { verifier, challenge } = CodeChallengeManager.generateCodeChallenge("sha256");
     const csrf = CodeChallengeManager.generateCodeCsrf();
@@ -109,9 +114,7 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     searchParams.append("target_auth_page", targetAuthPage);
 
     this.saveCodeChallengeStoredState(CodeChallengeHelper.stringifyStoredState(storedState));
-    const url = new URL(combineURLPaths(apiUrl, `/iam/v3/oauth/authorize?${searchParams.toString()}`));
-
-    return url.toString();
+    return new URL(combineURLPaths(apiUrl, `/iam/v3/oauth/authorize?${searchParams.toString()}`));
   }
 }  
 

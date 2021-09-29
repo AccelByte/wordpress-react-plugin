@@ -12,6 +12,7 @@ import {AppState} from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
 import {loginAPI} from "../../app-state/loginAPIInstance";
 import { loginUriPathName, registerUriPathName } from 'src/utils/env';
+import { targetAuthPage } from 'src/api/user-session/login';
 
 interface Props {
   appState: AppState;
@@ -66,10 +67,12 @@ class LoginButton extends React.Component<Props, State> {
     if (this.state.isRedirectingToAuthorizeUrl) return;
     this.setState({isRedirectingToAuthorizeUrl: true});
 
-    window.location.href = loginAPI.createLoginWebsiteUrl({
+    const url = loginAPI.createLoginWebsiteUrl({
       payload: { path: loginUriPathName ? "/" : appHistory.location.pathname },
-      targetAuthPage: "login",
+      targetAuthPage: targetAuthPage.login,
     });
+
+    window.location.replace(url);
   };
 
   goToRegister = () => {
@@ -79,10 +82,12 @@ class LoginButton extends React.Component<Props, State> {
     if (this.state.isRedirectingToAuthorizeUrl) return;
     this.setState({isRedirectingToAuthorizeUrl: true});
 
-    window.location.href = loginAPI.createLoginWebsiteUrl({
+    const url = loginAPI.createLoginWebsiteUrl({
       payload: { path: "/" },
-      targetAuthPage: "register",
+      targetAuthPage: targetAuthPage.register,
     });
+
+    window.location.replace(url);
   };
 
   render() {
