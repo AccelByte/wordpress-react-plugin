@@ -28,3 +28,5 @@ export const createOrderUrl =
 export const registerUriPathName = process.env.CLIENT_REGISTER_URI_PATH_NAME || "";
 
 export const loginUriPathName = process.env.CLIENT_LOGIN_URI_PATH_NAME || "";
+
+export const forgotPasswordUriPathName = process.env.CLIENT_FORGOT_PASSWORD_URI_PATH_NAME || "";

@@ -22,7 +22,8 @@ To build this plugin you need to set up following environments variable:
 - `JUSTICE_LEGAL_WEBSITE_URL`- URL of AccelByte Legal website URL
 - `JUSTICE_CREATE_ORDER_URL` - AccelByte Player Portal URL for order creation
 - `CLIENT_REGISTER_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP register URI and redirect to it, ie: "/register-overlay" 
-- `CLIENT_LOGIN_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP login URI and redirect to it, ie: "/login-overlay" 
+- `CLIENT_LOGIN_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP login URI and redirect to it, ie: "/login-overlay"  
+- `CLIENT_FORGOT_PASSWORD_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP forgot password URI and redirect to it, ie: "/forgot-password-overlay"
 
 And run these command under directory `/widget` to install the dependencies and build the plugin:
 
