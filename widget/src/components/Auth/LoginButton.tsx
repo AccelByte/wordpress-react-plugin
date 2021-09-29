@@ -11,7 +11,6 @@ import {Subscribe} from "unstated";
 import {AppState} from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
 import {loginAPI} from "../../app-state/loginAPIInstance";
-import {AuthorizationCodeExchangeStateHelper} from "./AuthorizationCodeExchangeStateHelper";
 import { loginUriPathName, registerUriPathName } from 'src/utils/env';
 
 interface Props {
@@ -67,9 +66,10 @@ class LoginButton extends React.Component<Props, State> {
     if (this.state.isRedirectingToAuthorizeUrl) return;
     this.setState({isRedirectingToAuthorizeUrl: true});
 
-    window.location.href = loginAPI.createLoginURL(AuthorizationCodeExchangeStateHelper.toJSONString({
-      path: loginUriPathName ? "/" : appHistory.location.pathname,
-    }));
+    window.location.href = loginAPI.createLoginWebsiteUrl({
+      payload: { path: loginUriPathName ? "/" : appHistory.location.pathname },
+      targetAuthPage: "login",
+    });
   };
 
   goToRegister = () => {
@@ -79,9 +79,10 @@ class LoginButton extends React.Component<Props, State> {
     if (this.state.isRedirectingToAuthorizeUrl) return;
     this.setState({isRedirectingToAuthorizeUrl: true});
 
-    window.location.href = loginAPI.createRegisterURL(AuthorizationCodeExchangeStateHelper.toJSONString({
-      path: "/",
-    }));
+    window.location.href = loginAPI.createLoginWebsiteUrl({
+      payload: { path: "/" },
+      targetAuthPage: "register",
+    });
   };
 
   render() {
