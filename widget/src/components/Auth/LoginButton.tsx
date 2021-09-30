@@ -11,7 +11,8 @@ import {Subscribe} from "unstated";
 import {AppState} from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
 import {loginAPI} from "../../app-state/loginAPIInstance";
-import {AuthorizationCodeExchangeStateHelper} from "./AuthorizationCodeExchangeStateHelper";
+import { forgotPasswordUriPathName, loginUriPathName, registerUriPathName } from 'src/utils/env';
+import { targetAuthPage } from 'src/api/user-session/login';
 
 interface Props {
   appState: AppState;
@@ -59,16 +60,22 @@ class LoginButton extends React.Component<Props, State> {
     window.removeEventListener("scroll", this.reportScrollPosition);
   }
 
-  goToLogin = () => {
-    const {state: {userSession, initialized, appHistory}} = this.props.appState;
+  goToWebsiteUrl = ( args: {payload: {path?: string}, targetAuthPage?: targetAuthPage} ) => {
+    const {state: {userSession, initialized}} = this.props.appState;
     if (!initialized || !!userSession.state.user) return;
 
     if (this.state.isRedirectingToAuthorizeUrl) return;
     this.setState({isRedirectingToAuthorizeUrl: true});
 
-    window.location.href = loginAPI.createLoginURL(AuthorizationCodeExchangeStateHelper.toJSONString({
-      path: appHistory.location.pathname,
-    }));
+    const url = loginAPI.createLoginWebsiteUrl( args );
+    window.location.replace(url);
+  }
+
+  goToLogin = () => {
+    const {state: {appHistory}} = this.props.appState;
+    this.goToWebsiteUrl({
+      payload: { path: loginUriPathName ? "/" : appHistory.location.pathname }
+    });
   };
 
   render() {
@@ -79,6 +86,24 @@ class LoginButton extends React.Component<Props, State> {
     const isLoggedIn = !!userSession.state.user;
     const isFetchingUser = userSession.state.isFetching;
     const isLoggingOut = userSession.state.isLoggingOut;
+
+    if( registerUriPathName && window.location.pathname === registerUriPathName ) {
+      this.goToWebsiteUrl({
+        payload: { path: "/" },
+        targetAuthPage: targetAuthPage.register,
+      });
+    }
+
+    if( loginUriPathName && window.location.pathname === loginUriPathName ) {
+      this.goToLogin();
+    }
+
+    if( forgotPasswordUriPathName && window.location.pathname === forgotPasswordUriPathName ) {
+      this.goToWebsiteUrl({
+        payload: { path: "/" },
+        targetAuthPage: targetAuthPage.forgotPassword,
+      });
+    }
 
     if (isMobile && isLoggedIn) return null;
 

@@ -5,10 +5,17 @@
  */
 
 import * as crypto from "crypto";
+import { AuthorizationCodeExchangeStateHelper } from "src/components/Auth/AuthorizationCodeExchangeStateHelper";
 import { apiUrl, clientId, redirectURI } from "src/utils/env";
 import { combineURLPaths } from "src/utils/urlHelper";
 import * as uuid from "uuid";
 import { CodeChallengeHelper } from "./models/codeChallenge";
+
+export enum targetAuthPage {
+  login = "",
+  register = "register",
+  forgotPassword = "forgot-password"
+}
 
 function base64URLEncode(code: Buffer) {
   return code
@@ -85,7 +92,8 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     };
   }
 
-  createLoginURL(payload?: string): string {
+  createLoginWebsiteUrl( args: {payload: {path?: string}, targetAuthPage?: targetAuthPage }): string {
+    const { payload, targetAuthPage } = args;
     const { verifier, challenge } = CodeChallengeManager.generateCodeChallenge("sha256");
     const csrf = CodeChallengeManager.generateCodeCsrf();
     const storedState = {
@@ -94,7 +102,7 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     };
     const sentState = {
       csrf,
-      payload: payload || null,
+      payload: AuthorizationCodeExchangeStateHelper.toJSONString(payload),
     };
 
     const searchParams = new URLSearchParams();
@@ -104,10 +112,12 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     searchParams.append("state", CodeChallengeHelper.stringifySentState(sentState));
     searchParams.append("code_challenge", challenge);
     searchParams.append("code_challenge_method", "S256");
+    searchParams.append("target_auth_page", targetAuthPage || "");
 
     this.saveCodeChallengeStoredState(CodeChallengeHelper.stringifyStoredState(storedState));
     const url = new URL(combineURLPaths(apiUrl, `/iam/v3/oauth/authorize?${searchParams.toString()}`));
-
+    
     return url.toString();
   }
-}
+}  
+

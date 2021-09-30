@@ -21,6 +21,9 @@ module.exports = function override(config, env) {
           "JUSTICE_PLAYERPORTAL_URL": JSON.stringify(process.env.JUSTICE_PLAYERPORTAL_URL),
           "JUSTICE_LEGAL_WEBSITE_URL": JSON.stringify(process.env.JUSTICE_LEGAL_WEBSITE_URL),
           "JUSTICE_CREATE_ORDER_URL": JSON.stringify(process.env.JUSTICE_CREATE_ORDER_URL),
+          "CLIENT_REGISTER_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_REGISTER_URI_PATH_NAME),
+          "CLIENT_LOGIN_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_LOGIN_URI_PATH_NAME),
+          "CLIENT_FORGOT_PASSWORD_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_FORGOT_PASSWORD_URI_PATH_NAME),
         }
       })
   );
