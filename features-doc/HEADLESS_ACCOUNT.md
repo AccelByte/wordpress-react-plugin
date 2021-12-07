@@ -7,7 +7,7 @@
 1. When user login with 3rd party account for the first time, after user login will got user data without email address then will redirect to Accelbyte Player Portal for upgrade headless account
     - **GET /iam/v3/public/users/me** to check whether the account has email address and verified or not. If user has email and verified then it is not headless and continue to login.
 2. User input email and request verification code
-    - **POST /iam/v3/public/namespaces/{namespace}/users/me/code/request** to get verification code. The context should be upgradeHeadlessAccount.
+    - **POST /iam/v3/public/namespaces/{namespace}/users/me/code/request** to get verification code. The context should be `upgradeHeadlessAccount`.
 3. User input verification code, date of birth, display name, password, country, and accept term of service
     - **POST /iam/v3/public/namespaces/{namespace}/users/me/headless/code/verify** to email verification and upgrade Headless account.
     - **POST /agreements/public/agreements/policies/** to accept term of service.
