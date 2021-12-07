@@ -31,34 +31,42 @@ export const ElementSelector = {
   PurchaseButtonClassName: "ab-wpr-purchase-btn"
 };
 
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <AppRoot/>
-  </Provider>
-  , document.getElementById(ElementSelector.AppRootId));
+if (document.getElementById(ElementSelector.AppRootId)) {
+  ReactDOM.render(
+    <Provider inject={[appState, appState.state.userSession]}>
+      <AppRoot/>
+    </Provider>
+    , document.getElementById(ElementSelector.AppRootId));
+}
 
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <LoginButton/>
-  </Provider>
-  , document.getElementById(ElementSelector.AuthButtonRootId));
+if (document.getElementById(ElementSelector.AuthButtonRootId)) {
+  ReactDOM.render(
+    <Provider inject={[appState, appState.state.userSession]}>
+      <LoginButton/>
+    </Provider>
+    , document.getElementById(ElementSelector.AuthButtonRootId));
+}
 
 // Note: The HTML element for ab-wpr-footer-privacy-link is created on WordPress plugin, and should be customize able from admin dashboard
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <PrivacyLink/>
-  </Provider>
-  , document.getElementById(ElementSelector.FooterPrivacyLinkId));
+if (document.getElementById(ElementSelector.FooterPrivacyLinkId)) {
+  ReactDOM.render(
+    <Provider inject={[appState, appState.state.userSession]}>
+      <PrivacyLink/>
+    </Provider>
+    , document.getElementById(ElementSelector.FooterPrivacyLinkId));
+}
 
 // Purchase button queried by className since in a page can have more than one purchase button with different itemId
 const PurchaseButtonElement = document.getElementsByClassName(ElementSelector.PurchaseButtonClassName);
-Array.prototype.forEach.call(PurchaseButtonElement, (element: Element) => {
-  const itemId = element.getAttribute("data-item-id");
-  const buttonStyle = element.getAttribute("data-btn-type");
-  if (!itemId) return;
-  ReactDOM.render(
-    <Provider inject={[appState, appState.state.userSession]}>
-      <PurchaseButton itemId={itemId} buttonStyle={buttonStyle}/>
-    </Provider>, element
-  )
-});
+if (PurchaseButtonElement) {
+  Array.prototype.forEach.call(PurchaseButtonElement, (element: Element) => {
+    const itemId = element.getAttribute("data-item-id");
+    const buttonStyle = element.getAttribute("data-btn-type");
+    if (!itemId) return;
+    ReactDOM.render(
+      <Provider inject={[appState, appState.state.userSession]}>
+        <PurchaseButton itemId={itemId} buttonStyle={buttonStyle}/>
+      </Provider>, element
+    )
+  });
+}
