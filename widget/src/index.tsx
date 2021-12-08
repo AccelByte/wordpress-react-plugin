@@ -24,41 +24,51 @@ if (isProduction) {
 }
 
 export const ElementSelector = {
-  AppRootId: "ab-wpr-root",
-  AuthButtonRootId: "ab-wpr-login-button-root",
-  AuthButtonRootMobileId: "ab-wpr-login-button-root-mobile",
-  FooterPrivacyLinkId: "ab-wpr-footer-privacy-link",
-  PurchaseButtonClassName: "ab-wpr-purchase-btn"
+  AppRootId: document.getElementById("ab-wpr-root"),
+  AuthButtonRootId: document.getElementById("ab-wpr-login-button-root"),
+  AuthButtonRootMobileId: document.getElementById("ab-wpr-login-button-root-mobile"),
+  FooterPrivacyLinkId: document.getElementById("ab-wpr-footer-privacy-link"),
+  PurchaseButtonClassName: document.getElementById("ab-wpr-purchase-btn")
 };
 
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <AppRoot/>
-  </Provider>
-  , document.getElementById(ElementSelector.AppRootId));
-
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <LoginButton/>
-  </Provider>
-  , document.getElementById(ElementSelector.AuthButtonRootId));
-
-// Note: The HTML element for ab-wpr-footer-privacy-link is created on WordPress plugin, and should be customize able from admin dashboard
-ReactDOM.render(
-  <Provider inject={[appState, appState.state.userSession]}>
-    <PrivacyLink/>
-  </Provider>
-  , document.getElementById(ElementSelector.FooterPrivacyLinkId));
-
-// Purchase button queried by className since in a page can have more than one purchase button with different itemId
-const PurchaseButtonElement = document.getElementsByClassName(ElementSelector.PurchaseButtonClassName);
-Array.prototype.forEach.call(PurchaseButtonElement, (element: Element) => {
-  const itemId = element.getAttribute("data-item-id");
-  const buttonStyle = element.getAttribute("data-btn-type");
-  if (!itemId) return;
+if (ElementSelector.AppRootId) {
   ReactDOM.render(
     <Provider inject={[appState, appState.state.userSession]}>
-      <PurchaseButton itemId={itemId} buttonStyle={buttonStyle}/>
-    </Provider>, element
-  )
-});
+      <AppRoot/>
+    </Provider>
+    , ElementSelector.AppRootId);
+} else {
+  console.error("Element with id ab-wpr-root is not exist, please add element with id ab-wpr-root to make plugin work correctly");
+}
+
+if (ElementSelector.AuthButtonRootId) {
+  ReactDOM.render(
+    <Provider inject={[appState, appState.state.userSession]}>
+      <LoginButton/>
+    </Provider>
+    , ElementSelector.AuthButtonRootId);
+}
+
+// Note: The HTML element for ab-wpr-footer-privacy-link is created on WordPress plugin, and should be customize able from admin dashboard
+if (ElementSelector.FooterPrivacyLinkId) {
+  ReactDOM.render(
+    <Provider inject={[appState, appState.state.userSession]}>
+      <PrivacyLink/>
+    </Provider>
+    , ElementSelector.FooterPrivacyLinkId);
+}
+
+// Purchase button queried by className since in a page can have more than one purchase button with different itemId
+const PurchaseButtonElement = ElementSelector.PurchaseButtonClassName;
+if (PurchaseButtonElement) {
+  Array.prototype.forEach.call(PurchaseButtonElement, (element: Element) => {
+    const itemId = element.getAttribute("data-item-id");
+    const buttonStyle = element.getAttribute("data-btn-type");
+    if (!itemId) return;
+    ReactDOM.render(
+      <Provider inject={[appState, appState.state.userSession]}>
+        <PurchaseButton itemId={itemId} buttonStyle={buttonStyle}/>
+      </Provider>, element
+    )
+  });
+}

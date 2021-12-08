@@ -7,8 +7,14 @@ The AccelByte WordPress Plugin is a ReactJS based application for integrating Wo
 ### High Level Features
 
 - Player authentication
-- Item purchase button
-- Document policy link for policy section
+    - [Login](features-doc/LOGIN.md)
+    - [Unverified Email](features-doc/UNVERIFIED_EMAIL.md)
+    - [Blocked Legal](features-doc/BLOCKED_LEGAL.md)
+    - [Headless Account](features-doc/HEADLESS_ACCOUNT.md)
+    - [Under Deletion Status](features-doc/UNDER_DELETION.md)
+    - [Logout](features-doc/LOGOUT.md)
+- [Item purchase button](features-doc/ITEM_PURCHASE_BUTTON.md)
+- [Document policy link for policy section](features-doc/DOCUMENT_POLICY_LINK.md)
 
 ### Building the project
 

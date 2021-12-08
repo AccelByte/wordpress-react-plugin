@@ -44,7 +44,7 @@ class AppRoot extends React.Component<Props, State> {
   };
 
   hideLoadingIndicator = () => {
-    document.getElementById("ajax-loading-screen")!.classList.remove("ab-wpr-loading-screen");
+    document.getElementById("ajax-loading-screen")?.classList.remove("ab-wpr-loading-screen");
   };
 
   render() {
