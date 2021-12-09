@@ -8,14 +8,15 @@ import { Container } from "unstated";
 import { isAxiosError } from "../errorDeducer";
 import networkManager from "../network";
 import { ElligibleUser, User } from "../user/models/user";
-import { fetchCurrentUser, loginWithAuthorizationCode, logout, refreshSession } from "../user/user";
+import { fetchCurrentUser, loginWithAuthorizationCode, logout, refreshSession, authTokenExchangePath, refreshSessionPath, logoutPath } from "../user/user";
 import { UserSessionError } from "./userSessionApiConstants";
 import { combineURLPaths } from "../../utils/urlHelper";
-import { clientId, namespace, playerPortalUrl } from "../../utils/env";
+import { clientId, namespace, playerPortalUrl, apiUrlPP } from "../../utils/env";
 import { DEVICE_ID_KEY, generateDeviceId, getDeviceType } from "../../utils/device";
 import { sleepAsync } from "../../utils/executionHelper";
 import { AuthorizationCodeExchangeState } from "../../components/Auth/AuthorizationCodeExchangeStateHelper";
 import LegalLogic from "../agreement/legalLogic";
+
 const platform = require("platform");
 
 interface UserSessionManagerConfig {
@@ -178,8 +179,22 @@ export default class UserSessionApi extends Container<State> {
       codeVerifier,
       redirectURI: this.config.redirectURI,
       clientId: this.config.clientId,
+      recreate: true
     });
     if (result.error) throw result.error;
+
+    // #region login to PP url to set cookies SB-599
+    if (apiUrlPP) {
+      const resultLoginPP = await loginWithAuthorizationCode(network, {
+        code,
+        codeVerifier,
+        redirectURI: this.config.redirectURI,
+        clientId: this.config.clientId,
+        url: combineURLPaths(apiUrlPP, authTokenExchangePath),
+      })
+      if (resultLoginPP.error) throw resultLoginPP.error;
+    }
+    // #endregion login to PP url to set cookies SB-599
 
     await this.fetchCurrentUser(statePayload);
   }
@@ -194,7 +209,9 @@ export default class UserSessionApi extends Container<State> {
             "Content-Type": "text/plain",
           },
         });
-        await logout(network);
+        if (apiUrlPP)
+          await Promise.all([logout(network), logout(network, combineURLPaths(apiUrlPP, logoutPath))]);
+
         this.setState({
           legalLogic: new LegalLogic({ namespace }),
           error: undefined,
@@ -265,13 +282,19 @@ export default class UserSessionApi extends Container<State> {
           },
         });
 
-        const result = await refreshSession(network, { clientId, refreshToken: null });
+        const result = await refreshSession(network, { clientId, refreshToken: null, recreate: false });
 
         // Reject the promise if refresh session is failing
         if (result.error) {
           return false;
         }
-
+        // #region refresh session to PP url to set cookies SB-599
+        if (apiUrlPP) {
+          const resRefrsSessProxy = await refreshSession(network, { clientId, refreshToken: null, url: combineURLPaths(apiUrlPP, refreshSessionPath) });
+          if (resRefrsSessProxy.error)
+            return false;
+        }
+        // #endregion refresh session to PP url to set cookies SB-599
         const { refresh_token, access_token, expires_in, is_comply, refresh_expires_in } = result.response.data;
         return {
           sessionId: access_token,

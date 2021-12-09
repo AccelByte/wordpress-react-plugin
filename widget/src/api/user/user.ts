@@ -30,7 +30,9 @@ export async function fetchCurrentUser(network: Network) {
   );
 }
 
-export const authTokenExchangeUrl = combineURLPaths(apiUrl, "/iam/v3/oauth/token");
+export const authTokenExchangePath = "/iam/v3/oauth/token";
+export const authTokenExchangeUrl = combineURLPaths(apiUrl, authTokenExchangePath);
+
 export function loginWithAuthorizationCode(
   network: Network,
   {
@@ -38,7 +40,9 @@ export function loginWithAuthorizationCode(
     codeVerifier,
     redirectURI,
     clientId,
-  }: { code: string; codeVerifier: string; redirectURI: string; clientId: string }
+    recreate = false,
+    url = authTokenExchangeUrl,
+  }: { code: string; codeVerifier: string; redirectURI: string; clientId: string, recreate?: boolean, url?: string },
 ) {
   const data = new URLSearchParams();
   data.append("grant_type", "authorization_code");
@@ -46,9 +50,11 @@ export function loginWithAuthorizationCode(
   data.append("code_verifier", codeVerifier);
   data.append("client_id", clientId);
   data.append("redirect_uri", redirectURI);
+  if(recreate) data.append("recreate", recreate.toString());
+
   return guardNetworkCall(
     () =>
-      network.post(authTokenExchangeUrl, data, {
+      network.post(url, data, {
         headers: {
           "Device-Id": localStorage.getItem("deviceId") || generateDeviceId(),
           "Device-Name": (platform.name || "").toString(),
@@ -62,30 +68,36 @@ export function loginWithAuthorizationCode(
   );
 }
 
+export const refreshSessionPath = "/iam/v3/oauth/token";
 export const refreshSessionUrl = combineURLPaths(apiUrl || "", "/iam/v3/oauth/token");
+
 export async function refreshSession(
   network: Network,
-  { refreshToken, clientId }: { refreshToken?: string | null; clientId: string }
+  { refreshToken, clientId, 
+    recreate = false, url = refreshSessionUrl }: { refreshToken?: string | null; clientId: string; recreate?: boolean; url?: string; }
 ) {
   const payload = new URLSearchParams();
   refreshToken && payload.append("refresh_token", refreshToken);
   payload.append("client_id", clientId);
   payload.append("grant_type", "refresh_token");
+  if(recreate) payload.append("recreate", recreate.toString());
+
   return guardNetworkCall(
-    () => network.post(refreshSessionUrl, payload),
+    () => network.post(url, payload),
     LoginSessionData,
     RefreshError,
     (error) => error
   );
 }
 
-export const logoutUrl = combineURLPaths(apiUrl, "iam/v3/logout");
-export async function logout(network: Network) {
+export const logoutPath = "iam/v3/logout";
+export const logoutUrl = combineURLPaths(apiUrl, logoutPath);
+export async function logout(network: Network, url:string = logoutUrl) {
   return guardNetworkCall(
     () =>
       // Passing string as second argument triggers Axios
       // to set content-type to application/x-www-form-urlencoded
-      network.post(logoutUrl, ""),
+      network.post(url, ""),
     ioTs.string,
     LogoutDecodeError,
     (error) => error

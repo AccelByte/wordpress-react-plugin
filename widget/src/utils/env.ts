@@ -16,6 +16,8 @@ export const namespace = process.env.JUSTICE_PUBLISHER_NAMESPACE || "";
 
 export const apiUrl = process.env.JUSTICE_BASE_URL || (isDevMode && "https://demo.accelbyte.io") || "";
 
+export const apiUrlPP = process.env.JUSTICE_BASE_URL_PP || null;
+
 export const playerPortalUrl =
   process.env.JUSTICE_PLAYERPORTAL_URL || (isDevMode && "https://demo.accelbyte.io/player") || "";
 

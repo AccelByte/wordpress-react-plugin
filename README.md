@@ -24,6 +24,7 @@ To build this plugin you need to set up following environments variable:
 - `APP_SECURITY_CLIENT_ID` - Client ID from IAM for WordPress application in browser
 - `JUSTICE_PUBLISHER_NAMESPACE` - Default namespace
 - `JUSTICE_BASE_URL` - Base URL of Accelbyte services
+- `JUSTICE_BASE_URL_PP` - Base URL of Player Portal services
 - `JUSTICE_PLAYERPORTAL_URL` - URL of AccelByte PlayerPortal URL
 - `JUSTICE_LEGAL_WEBSITE_URL`- URL of AccelByte Legal website URL
 - `JUSTICE_CREATE_ORDER_URL` - AccelByte Player Portal URL for order creation

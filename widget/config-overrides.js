@@ -17,6 +17,7 @@ module.exports = function override(config, env) {
           "APP_SECURITY_CLIENT_ID": JSON.stringify(process.env.APP_SECURITY_CLIENT_ID),
           "JUSTICE_PUBLISHER_NAMESPACE": JSON.stringify(process.env.JUSTICE_PUBLISHER_NAMESPACE),
           "JUSTICE_BASE_URL": JSON.stringify(process.env.JUSTICE_BASE_URL),
+          "JUSTICE_BASE_URL_PP": JSON.stringify(process.env.JUSTICE_BASE_URL_PP),
           "CLIENT_REDIRECT_URI": JSON.stringify(process.env.CLIENT_REDIRECT_URI),
           "JUSTICE_PLAYERPORTAL_URL": JSON.stringify(process.env.JUSTICE_PLAYERPORTAL_URL),
           "JUSTICE_LEGAL_WEBSITE_URL": JSON.stringify(process.env.JUSTICE_LEGAL_WEBSITE_URL),
