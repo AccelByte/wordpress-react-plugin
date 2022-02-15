@@ -6,6 +6,7 @@
 
 # dependencies
 /widget/node_modules/
+/version-customer.json
 
 # production
 /widget/build
