@@ -24,7 +24,7 @@ module.exports = function override(config, env) {
           "CLIENT_REGISTER_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_REGISTER_URI_PATH_NAME),
           "CLIENT_LOGIN_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_LOGIN_URI_PATH_NAME),
           "CLIENT_FORGOT_PASSWORD_URI_PATH_NAME": JSON.stringify(process.env.CLIENT_FORGOT_PASSWORD_URI_PATH_NAME),
-          "FORCE_REDIRECT": JSON.stringify(process.env.FORCE_REDIRECT),
+          "CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT": JSON.stringify(process.env.CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT),
         }
       })
   );

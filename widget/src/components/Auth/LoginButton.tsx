@@ -11,7 +11,7 @@ import {Subscribe} from "unstated";
 import {AppState} from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
 import {loginAPI} from "../../app-state/loginAPIInstance";
-import { forgotPasswordUriPathName, loginUriPathName, registerUriPathName, forceRedirect, playerPortalUrl } from 'src/utils/env';
+import { forgotPasswordUriPathName, loginUriPathName, registerUriPathName, clientOverlayUriPathAutoRedirect, playerPortalUrl } from 'src/utils/env';
 import { targetAuthPage } from 'src/api/user-session/login';
 
 interface Props {
@@ -63,8 +63,8 @@ class LoginButton extends React.Component<Props, State> {
   goToWebsiteUrl = ( args: {payload: {path?: string}, targetAuthPage?: targetAuthPage} ) => {
     const {state: {userSession, initialized}} = this.props.appState;
 
-    if (!!userSession.state.user && forceRedirect) {
-      window.location.replace(`${playerPortalUrl}${args.targetAuthPage}`);
+    if (!!userSession.state.user && clientOverlayUriPathAutoRedirect) {
+      window.location.replace(`${playerPortalUrl}`);
       return;
     }
     
