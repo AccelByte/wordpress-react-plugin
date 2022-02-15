@@ -31,4 +31,4 @@ export const loginUriPathName = process.env.CLIENT_LOGIN_URI_PATH_NAME || "";
 
 export const forgotPasswordUriPathName = process.env.CLIENT_FORGOT_PASSWORD_URI_PATH_NAME || "";
 
-export const clientOverlayUriPathAutoRedirect = process.env.CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT==="false" || true;
+export const clientOverlayUriPathAutoRedirect = !process.env.CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT || process.env.CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT === "true" || false;
