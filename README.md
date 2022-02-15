@@ -30,6 +30,7 @@ To build this plugin you need to set up following environments variable:
 - `CLIENT_REGISTER_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP register URI and redirect to it, ie: "/register-overlay/" 
 - `CLIENT_LOGIN_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP login URI and redirect to it, ie: "/login-overlay/"  
 - `CLIENT_FORGOT_PASSWORD_URI_PATH_NAME` - Optional - Client URI path name as entry point to generate PP forgot password URI and redirect to it, ie: "/forgot-password-overlay/"
+- `CLIENT_OVERLAY_URI_PATH_AUTO_REDIRECT` - Optional - force redirect to player portal page if the user already logged in when accessing CLIENT_REGISTER_URI_PATH_NAME, CLIENT_FORGOT_PASSWORD_URI_PATH_NAME and CLIENT_LOGIN_URI_PATH_NAME, (default true)    
 
 And run these command under directory `/widget` to install the dependencies and build the plugin:
 
