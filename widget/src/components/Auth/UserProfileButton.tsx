@@ -14,6 +14,7 @@ import {UserProfileLogic} from "./UserProfileLogic";
 import Avatar from "../_common/Avatar";
 import {breakPoint} from "../../utils/displayBreakPoint";
 import {ElligibleUser} from "../../api/user/models/user";
+import { playerPortalUrl } from "src/utils/env";
 
 interface Props {
   appState: AppState;
@@ -39,7 +40,8 @@ class UserProfileButton extends React.Component<Props, State> {
   render() {
     const { appState, isPageScrollOnTop, screenWidth } = this.props;
     const { user, isFetching: isFetchingUser, error } = appState.state.userSession.state;
-    const { profile, isFetching: isFetchingProfile } = this.userProfileLogic.state;
+    const { profile, isFetching: isFetchingProfile, error: profileError } = this.userProfileLogic.state;
+
     if (isFetchingUser) {
       return (<div className={"ab-wpr-user-profile-button"}>
         <LoadingBarIcon/>
@@ -68,6 +70,10 @@ class UserProfileButton extends React.Component<Props, State> {
     }
 
     if (!ElligibleUser.is(user)) return null;
+
+    if(profile === undefined && !isFetchingProfile && profileError) {
+      window.location.href = playerPortalUrl;
+    }
 
     return (
       <div
