@@ -30,3 +30,13 @@ export class UserProfileDecodeError extends Error {
     Object.setPrototypeOf(this, UserProfileDecodeError.prototype);
   }
 }
+
+// SA-558 The avatar in paydaythegame.com is not the same as in my account: start
+export const UserProfileAvatar = ioTs.type(
+  {
+    avatarUrl: ioTs.string,
+  }
+);
+
+export type UserProfileAvatar = ioTs.TypeOf<typeof UserProfileAvatar>;
+// SA-558 The avatar in paydaythegame.com is not the same as in my account: end

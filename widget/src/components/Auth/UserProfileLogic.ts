@@ -7,7 +7,7 @@
 import {Container} from "unstated";
 import {UserProfile} from "../../api/user/models/profile";
 import networkManager from "../../api/network";
-import {fetchUserProfile} from "../../api/user/profile";
+import { fetchUserProfile, fetchUserProfileAvatar } from "../../api/user/profile"; // SA-558 The avatar in paydaythegame.com is not the same as in my account
 import { namespace } from "src/utils/env";
 
 interface State {
@@ -43,6 +43,11 @@ export class UserProfileLogic extends Container<State> {
         if (result.error) throw result.error;
         return result.response.data;
       });
+      // SA-558 The avatar in paydaythegame.com is not the same as in my account: start
+      const userAvatar = await fetchUserProfileAvatar(network, { namespace });
+      if (userAvatar.error) throw userAvatar.error;
+      profile.avatarUrl = userAvatar.response?.data.avatarUrl;
+      // SA-558 The avatar in paydaythegame.com is not the same as in my account: end
       this.setState({ profile, error: null });
     } catch (error) {
       await this.setState({ error });
