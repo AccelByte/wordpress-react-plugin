@@ -113,6 +113,7 @@ export class LoginAPI implements LoginAPICodeChallengeStorageAccessor {
     searchParams.append("code_challenge", challenge);
     searchParams.append("code_challenge_method", "S256");
     searchParams.append("target_auth_page", targetAuthPage || "");
+    searchParams.append("createHeadless", "false"); // SA-569 Need adjust flow in paydaythegame to be same as PP
 
     this.saveCodeChallengeStoredState(CodeChallengeHelper.stringifyStoredState(storedState));
     const url = new URL(combineURLPaths(apiUrl, `/iam/v3/oauth/authorize?${searchParams.toString()}`));

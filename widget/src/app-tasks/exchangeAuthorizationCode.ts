@@ -8,7 +8,7 @@ import {AppState} from "../app-state/createAppState";
 import {loginAPI} from "../app-state/loginAPIInstance";
 import {AuthorizationCodeExchangeStateHelper} from "../components/Auth/AuthorizationCodeExchangeStateHelper";
 import {combineURLPaths} from "../utils/urlHelper";
-import {playerPortalUrl} from "../utils/env";
+import {playerPortalUrl, redirectURI} from "../utils/env"; // SA-569 Need adjust flow in paydaythegame to be same as PP
 
 let initialExchangeAutorizationCodeDone = false;
 export default async (appState: AppState) => {
@@ -19,6 +19,17 @@ export default async (appState: AppState) => {
 
   const searchParams = new URLSearchParams(appHistory.location.search);
   const code = searchParams.get("code");
+  // SA-569 Need adjust flow in paydaythegame to be same as PP: START
+  const alreadyLinked = searchParams.get("alreadyLinked");
+  const clientId = searchParams.get("clientId");
+  const linkingToken = searchParams.get("linkingToken");
+  const platformId = searchParams.get("platformId");
+  if (alreadyLinked === "false" && linkingToken && platformId && clientId) {
+    searchParams.append("redirect_uri", redirectURI);
+    window.location.replace(combineURLPaths(playerPortalUrl, `link-account?${searchParams.toString()}`));
+    return;
+  }
+  // SA-569 Need adjust flow in paydaythegame to be same as PP: END
   if (!code) return;
 
   const state = searchParams.get("state") || "";
