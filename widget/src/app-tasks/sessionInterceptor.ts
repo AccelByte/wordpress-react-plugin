@@ -6,7 +6,7 @@
 
 import axios, { AxiosError } from "axios";
 import { addGlobalRequestInterceptors, addGlobalResponseInterceptors } from "src/api/network";
-import { apiUrl } from "src/utils/env";
+import { apiUrl, playerPortalUrl } from "src/utils/env";
 import { AppState } from "../app-state/createAppState";
 import { sleepAsync } from "../utils/executionHelper";
 import { authTokenExchangeUrl, logoutUrl, refreshSessionUrl } from "../api/user/user";
@@ -49,15 +49,25 @@ export default async (appState: AppState) => {
 
           if (isLogoutUrl || isRefreshUrl || isGenerateAccessTokenUrl) throw error;
 
+          const paths = window.location.pathname.split("/"); // SA-647 register with steam use headless account
+
           // other session checking will be done here
           // once the 401's already returns error code
           return await userSession.refreshSessionWithLockOrLogout().then((tokenStore) => {
             if (tokenStore) {
               return axios(error.config);
             }
+
             if (!!userSession.state.user) {
               window.location.href = "/";
             }
+
+            // SA-647 register with steam use headless account: start
+            if (paths[paths.length - 1] === "link-account" && window.location.search !== "") {
+              window.location.href = `${playerPortalUrl}link-account${window.location.search}`;
+            }
+            // SA-647 register with steam use headless account: end
+
             throw error;
           });
         }
