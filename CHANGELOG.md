@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.3.3] (2022-12-16) include justice 3.34 fro no headless option
+## [1.3.4] (2022-12-16) update pathname
+
+## [1.3.3] (2022-12-16) include justice 3.34 for no headless option
 
 ## [1.3.2] (2022-11-22) change avatar url from basic to bridge
 

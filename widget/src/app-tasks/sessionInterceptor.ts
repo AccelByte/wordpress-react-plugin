@@ -63,7 +63,7 @@ export default async (appState: AppState) => {
             }
 
             // SA-647 register with steam use headless account: start
-            if (paths[paths.length - 1] === "link-account" && window.location.search !== "") {
+            if (paths.includes("link-account") && window.location.search !== "") {
               window.location.href = `${playerPortalUrl}link-account${window.location.search}`;
             }
             // SA-647 register with steam use headless account: end
