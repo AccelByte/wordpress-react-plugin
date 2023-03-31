@@ -11,7 +11,7 @@
 /*
   Plugin Name: AccelByte WordPress React
   Description: Integrate your WordPress with AccelByte Platform
-  Version: 1.0.0
+  Version: 1.3.5
   Author: AccelByte. Inc
 */
 
