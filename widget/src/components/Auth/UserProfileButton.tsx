@@ -5,15 +5,15 @@
  */
 
 import * as React from "react";
-import {AppState} from "../../app-state/createAppState";
-import {Subscribe} from "unstated";
+import { AppState } from "../../app-state/createAppState";
+import { Subscribe } from "unstated";
 import classNames from "classnames";
-import {LoadingBarIcon} from "../Icons/LoadingBarIcon/LoadingBarIcon";
+import { LoadingBarIcon } from "../Icons/LoadingBarIcon/LoadingBarIcon";
 import UserProfileDropDown from "./UserProfileDropDown";
-import {UserProfileLogic} from "./UserProfileLogic";
+import { UserProfileLogic } from "./UserProfileLogic";
 import Avatar from "../_common/Avatar";
-import {breakPoint} from "../../utils/displayBreakPoint";
-import {ElligibleUser} from "../../api/user/models/user";
+import { breakPoint } from "../../utils/displayBreakPoint";
+import { ElligibleUser } from "../../api/user/models/user";
 import { playerPortalUrl } from "src/utils/env";
 
 interface Props {
@@ -43,9 +43,11 @@ class UserProfileButton extends React.Component<Props, State> {
     const { profile, isFetching: isFetchingProfile, error: profileError } = this.userProfileLogic.state;
 
     if (isFetchingUser) {
-      return (<div className={"ab-wpr-user-profile-button"}>
-        <LoadingBarIcon/>
-      </div>);
+      return (
+        <div className={"ab-wpr-user-profile-button"}>
+          <LoadingBarIcon />
+        </div>
+      );
     }
 
     if (!user || error) {
@@ -63,7 +65,7 @@ class UserProfileButton extends React.Component<Props, State> {
               "ab-wpr-login-button"
             )}
           >
-            Failed Fetching profile, Try again  {/* TODO: NEED TO CONSULT WITH DESIGN TEAM */}
+            Failed Fetching profile, Try again {/* TODO: NEED TO CONSULT WITH DESIGN TEAM */}
           </button>
         </div>
       );
@@ -71,16 +73,22 @@ class UserProfileButton extends React.Component<Props, State> {
 
     if (!ElligibleUser.is(user)) return null;
 
-    if(profile === undefined && !isFetchingProfile && profileError) {
+    if (profile === undefined && !isFetchingProfile && profileError) {
+      // SA-768 register with custom redirect and PD3 tag: start
+      const customRedirect = localStorage.getItem("PD3CustomRedirect");
+      if (customRedirect) {
+        localStorage.removeItem("PD3CustomRedirect");
+        window.location.href = `${playerPortalUrl}?PD3CustomRedirect=${customRedirect}`;
+        return;
+      }
+      // SA-768 register with custom redirect and PD3 tag: end
+
       window.location.href = playerPortalUrl;
     }
 
     return (
       <div
-        className={classNames(
-          "ab-wpr-user-profile-button",
-          { "scrolled": !isPageScrollOnTop }
-        )}
+        className={classNames("ab-wpr-user-profile-button", { scrolled: !isPageScrollOnTop })}
         onMouseEnter={() => this.setState({ showDropdown: true })}
         onMouseLeave={() => this.setState({ showDropdown: false })}
       >
@@ -89,40 +97,30 @@ class UserProfileButton extends React.Component<Props, State> {
           imageUrl={profile ? profile.avatarUrl : ""}
           className={classNames(
             "ab-wpr-avatar",
-            {"large": screenWidth >= breakPoint.medium.max},
-            {"scrolled": !isPageScrollOnTop}
+            { large: screenWidth >= breakPoint.medium.max },
+            { scrolled: !isPageScrollOnTop }
           )}
         />
         {screenWidth >= breakPoint.large.min && (
           <div
-            className={classNames(
-              "ab-wpr-display-name",
-              {"scrolled": !isPageScrollOnTop}
-            )}
+            className={classNames("ab-wpr-display-name", { scrolled: !isPageScrollOnTop })}
             onClick={this.userProfileLogic.fetchProfile}
           >
             {user.displayName}
           </div>
         )}
         <UserProfileDropDown
-          className={classNames(
-            { "scrolled": !isPageScrollOnTop },
-            { "large": screenWidth >= breakPoint.large.min}
-          )}
+          className={classNames({ scrolled: !isPageScrollOnTop }, { large: screenWidth >= breakPoint.large.min })}
         />
       </div>
-    )
+    );
   }
 }
 
-export default ({ screenWidth, isPageScrollOnTop }: { screenWidth: number, isPageScrollOnTop?: boolean })=> (
-  <Subscribe to={[AppState]}>{
-    (appState: AppState) => (
-      <UserProfileButton
-        appState={appState}
-        isPageScrollOnTop={isPageScrollOnTop}
-        screenWidth={screenWidth}
-      />
-    )
-  }</Subscribe>
+export default ({ screenWidth, isPageScrollOnTop }: { screenWidth: number; isPageScrollOnTop?: boolean }) => (
+  <Subscribe to={[AppState]}>
+    {(appState: AppState) => (
+      <UserProfileButton appState={appState} isPageScrollOnTop={isPageScrollOnTop} screenWidth={screenWidth} />
+    )}
+  </Subscribe>
 );

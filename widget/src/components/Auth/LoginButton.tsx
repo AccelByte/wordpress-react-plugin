@@ -4,15 +4,21 @@
  * and restrictions contact your company contract manager.
  */
 
-import React from 'react';
+import React from "react";
 import classNames from "classnames";
-import {LoadingBarIcon} from "../Icons/LoadingBarIcon/LoadingBarIcon";
-import {Subscribe} from "unstated";
-import {AppState} from "../../app-state/createAppState";
+import { LoadingBarIcon } from "../Icons/LoadingBarIcon/LoadingBarIcon";
+import { Subscribe } from "unstated";
+import { AppState } from "../../app-state/createAppState";
 import UserProfileButton from "./UserProfileButton";
-import {loginAPI} from "../../app-state/loginAPIInstance";
-import { forgotPasswordUriPathName, loginUriPathName, registerUriPathName, clientOverlayUriPathAutoRedirect, playerPortalUrl } from 'src/utils/env';
-import { targetAuthPage } from 'src/api/user-session/login';
+import { loginAPI } from "../../app-state/loginAPIInstance";
+import {
+  forgotPasswordUriPathName,
+  loginUriPathName,
+  registerUriPathName,
+  clientOverlayUriPathAutoRedirect,
+  playerPortalUrl,
+} from "src/utils/env";
+import { targetAuthPage } from "src/api/user-session/login";
 
 interface Props {
   appState: AppState;
@@ -25,34 +31,55 @@ interface State {
   isRedirectingToAuthorizeUrl: boolean;
 }
 
-class LoginButton extends React.Component<Props, State> {
+// SA-768 register with custom redirect and PD3 tag: start
+declare global {
+  interface Window {
+    registerPD3WithCustomRedirect: () => void;
+  }
+}
+// SA-768 register with custom redirect and PD3 tag: end
 
+class LoginButton extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
       isPageScrollOnTop: true,
       screenWidth: window.innerWidth,
       isRedirectingToAuthorizeUrl: false,
-    }
+    };
   }
+
+  register = () => {
+    this.goToWebsiteUrl({
+      payload: { path: "/" },
+      targetAuthPage: targetAuthPage.register,
+    });
+  };
 
   reportScrollPosition = () => {
     if (document.scrollingElement) {
       this.setState({
-        isPageScrollOnTop: document.scrollingElement.scrollTop === 0
+        isPageScrollOnTop: document.scrollingElement.scrollTop === 0,
       });
     }
   };
 
   reportScreenWidth = () => {
-    this.setState({screenWidth: window.innerWidth});
+    this.setState({ screenWidth: window.innerWidth });
   };
 
   async componentDidMount() {
     this.reportScrollPosition();
     this.reportScreenWidth();
-    window.addEventListener("resize", this.reportScreenWidth, {passive: true});
-    window.addEventListener("scroll", this.reportScrollPosition, {passive: true});
+    window.addEventListener("resize", this.reportScreenWidth, { passive: true });
+    window.addEventListener("scroll", this.reportScrollPosition, { passive: true });
+
+    // SA-768 register with custom redirect and PD3 tag: start
+    window.registerPD3WithCustomRedirect = () => {
+      localStorage.setItem("PD3CustomRedirect", document.location.href);
+      this.register();
+    };
+    // SA-768 register with custom redirect and PD3 tag: end
   }
 
   componentWillUnmount(): void {
@@ -60,51 +87,54 @@ class LoginButton extends React.Component<Props, State> {
     window.removeEventListener("scroll", this.reportScrollPosition);
   }
 
-  goToWebsiteUrl = ( args: {payload: {path?: string}, targetAuthPage?: targetAuthPage} ) => {
-    const {state: {userSession, initialized}} = this.props.appState;
+  goToWebsiteUrl = (args: { payload: { path?: string }; targetAuthPage?: targetAuthPage }) => {
+    const {
+      state: { userSession, initialized },
+    } = this.props.appState;
 
     if (!!userSession.state.user && clientOverlayUriPathAutoRedirect) {
       window.location.replace(`${playerPortalUrl}`);
       return;
     }
-    
+
     if (!initialized || !!userSession.state.user) return;
 
     if (this.state.isRedirectingToAuthorizeUrl) return;
-    this.setState({isRedirectingToAuthorizeUrl: true});
+    this.setState({ isRedirectingToAuthorizeUrl: true });
 
-    const url = loginAPI.createLoginWebsiteUrl( args );
+    const url = loginAPI.createLoginWebsiteUrl(args);
     window.location.replace(url);
-  }
+  };
 
   goToLogin = () => {
-    const {state: {appHistory}} = this.props.appState;
+    const {
+      state: { appHistory },
+    } = this.props.appState;
     this.goToWebsiteUrl({
-      payload: { path: loginUriPathName ? "/" : appHistory.location.pathname }
+      payload: { path: loginUriPathName ? "/" : appHistory.location.pathname },
     });
   };
 
   render() {
-    const {appState, isMobile} = this.props;
-    const {isPageScrollOnTop, screenWidth, isRedirectingToAuthorizeUrl} = this.state;
-    const {state: {userSession, initialized}} = appState;
+    const { appState, isMobile } = this.props;
+    const { isPageScrollOnTop, screenWidth, isRedirectingToAuthorizeUrl } = this.state;
+    const {
+      state: { userSession, initialized },
+    } = appState;
 
     const isLoggedIn = !!userSession.state.user;
     const isFetchingUser = userSession.state.isFetching;
     const isLoggingOut = userSession.state.isLoggingOut;
 
-    if( registerUriPathName && window.location.pathname === registerUriPathName ) {
-      this.goToWebsiteUrl({
-        payload: { path: "/" },
-        targetAuthPage: targetAuthPage.register,
-      });
+    if (registerUriPathName && window.location.pathname === registerUriPathName) {
+      this.register();
     }
 
-    if( loginUriPathName && window.location.pathname === loginUriPathName ) {
+    if (loginUriPathName && window.location.pathname === loginUriPathName) {
       this.goToLogin();
     }
 
-    if( forgotPasswordUriPathName && window.location.pathname === forgotPasswordUriPathName ) {
+    if (forgotPasswordUriPathName && window.location.pathname === forgotPasswordUriPathName) {
       this.goToWebsiteUrl({
         payload: { path: "/" },
         targetAuthPage: targetAuthPage.forgotPassword,
@@ -116,48 +146,41 @@ class LoginButton extends React.Component<Props, State> {
     return (
       <>
         {!isMobile && (
-          <span className={classNames(
-            "ab-wpr-vertical-line-separator",
-            {"scrolled": !isPageScrollOnTop}
-          )}/>
+          <span className={classNames("ab-wpr-vertical-line-separator", { scrolled: !isPageScrollOnTop })} />
         )}
         <div className="ab-wpr-login-button-container">
           {(!initialized || isRedirectingToAuthorizeUrl || (!isLoggedIn && isFetchingUser) || isLoggingOut) && (
-            <LoadingBarIcon className={classNames(
-              "ab-wpr-loading-indicator",
-              {"scrolled": !isPageScrollOnTop}
-            )}/>
+            <LoadingBarIcon className={classNames("ab-wpr-loading-indicator", { scrolled: !isPageScrollOnTop })} />
           )}
           {initialized && isLoggedIn && !isFetchingUser && !isLoggingOut && !isRedirectingToAuthorizeUrl && (
-            <UserProfileButton isPageScrollOnTop={isPageScrollOnTop} screenWidth={screenWidth}/>
+            <UserProfileButton isPageScrollOnTop={isPageScrollOnTop} screenWidth={screenWidth} />
           )}
-          {initialized && !isLoggedIn && !isFetchingUser && !isLoggingOut && !isRedirectingToAuthorizeUrl && (<>
-            <button
-              onClick={this.goToLogin}
-              className={classNames(
-                "nectar-button",
-                "medium regular",
-                "accent-color",
-                "regular-button",
-                "ab-wpr-login-button",
-                {"disabled": !initialized},
-                {"scrolled": !isPageScrollOnTop}
-              )}
-            >
-              Log in
-            </button>
-
-          </>)}
+          {initialized && !isLoggedIn && !isFetchingUser && !isLoggingOut && !isRedirectingToAuthorizeUrl && (
+            <>
+              <button
+                onClick={this.goToLogin}
+                className={classNames(
+                  "nectar-button",
+                  "medium regular",
+                  "accent-color",
+                  "regular-button",
+                  "ab-wpr-login-button",
+                  { disabled: !initialized },
+                  { scrolled: !isPageScrollOnTop }
+                )}
+              >
+                Log in
+              </button>
+            </>
+          )}
         </div>
       </>
-    )
+    );
   }
 }
 
-export default ({isMobile}: Partial<Props>) => (
+export default ({ isMobile }: Partial<Props>) => (
   <Subscribe to={[AppState]}>
-    {(appState: AppState) => (
-      <LoginButton appState={appState} isMobile={isMobile}/>
-    )}
+    {(appState: AppState) => <LoginButton appState={appState} isMobile={isMobile} />}
   </Subscribe>
 );
