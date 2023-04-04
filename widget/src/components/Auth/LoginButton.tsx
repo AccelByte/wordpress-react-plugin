@@ -156,22 +156,20 @@ class LoginButton extends React.Component<Props, State> {
             <UserProfileButton isPageScrollOnTop={isPageScrollOnTop} screenWidth={screenWidth} />
           )}
           {initialized && !isLoggedIn && !isFetchingUser && !isLoggingOut && !isRedirectingToAuthorizeUrl && (
-            <>
-              <button
-                onClick={this.goToLogin}
-                className={classNames(
-                  "nectar-button",
-                  "medium regular",
-                  "accent-color",
-                  "regular-button",
-                  "ab-wpr-login-button",
-                  { disabled: !initialized },
-                  { scrolled: !isPageScrollOnTop }
-                )}
-              >
-                Log in
-              </button>
-            </>
+            <button
+              onClick={this.goToLogin}
+              className={classNames(
+                "nectar-button",
+                "medium regular",
+                "accent-color",
+                "regular-button",
+                "ab-wpr-login-button",
+                { disabled: !initialized },
+                { scrolled: !isPageScrollOnTop }
+              )}
+            >
+              Log in
+            </button>
           )}
         </div>
       </>
